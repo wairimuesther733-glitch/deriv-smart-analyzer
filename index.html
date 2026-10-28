@@ -1,372 +1,574 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deriv Smart Analyzer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deriv Smart Analyzer — Free Read-only</title>
 <style>
-:root {
-  color-scheme: dark;
-  --bg: #0b1220;
-  --panel: #121d30;
-  --line: #293951;
-  --text: #edf4ff;
-  --muted: #a7b7ce;
-  --accent: #73e0c1;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  padding: 18px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
-}
-main { max-width: 900px; margin: auto; }
-h1 { font-size: 25px; margin-bottom: 5px; }
-p, small { color: var(--muted); line-height: 1.5; }
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px;
-  margin: 14px 0;
-}
-.row { display: flex; flex-wrap: wrap; gap: 10px; }
-.row > * { flex: 1; min-width: 145px; }
-label { display: block; margin-bottom: 7px; color: var(--muted); }
-select, button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-  background: #0b1220;
-  color: var(--text);
-  font-size: 15px;
-}
-button { cursor: pointer; background: #1d3a4a; }
-button.primary { background: #167d69; border: none; }
-button:disabled { opacity: .5; }
-.status { font-weight: bold; color: #ffc76b; }
-.status.ok { color: var(--accent); }
-.price { font-size: 30px; font-weight: bold; margin: 10px 0; }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.stat {
-  background: #0b1220;
-  border: 1px solid var(--line);
-  padding: 13px;
-  border-radius: 10px;
-}
-.stat strong { display: block; font-size: 23px; margin-top: 8px; }
-.digits {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 7px;
-  margin-top: 12px;
-}
-.digit {
-  background: #0b1220;
-  padding: 10px 2px;
-  text-align: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-.digit strong { display: block; font-size: 19px; }
-.bar { height: 5px; background: #293951; margin-top: 7px; border-radius: 5px; overflow: hidden; }
-.bar span { display: block; height: 100%; background: var(--accent); }
-#log { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
-footer { font-size: 12px; color: var(--muted); line-height: 1.6; }
-@media (min-width: 600px) {
-  .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d30;--line:#293951;--text:#edf4ff;--muted:#a7b7ce;--accent:#73e0bd;--warn:#ffd27a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:auto;padding:22px}
+h1{font-size:clamp(24px,4vw,36px);margin:0 0 5px}
+h2{font-size:18px;margin:0 0 12px}
+.sub,.muted{color:var(--muted)}
+.notice{padding:12px 14px;border:1px solid #66552e;background:#2a2418;border-radius:12px;color:#ffe4a6;margin:16px 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:5px}
+select,button{width:100%;border:1px solid #42536b;background:#0c1627;color:var(--text);border-radius:10px;padding:11px;font:inherit}
+button{cursor:pointer;font-weight:650}
+button.primary{background:var(--accent);color:#08241c;border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:#8896a9;display:inline-block}
+.dot.on{background:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.metric{padding:13px;border:1px solid var(--line);border-radius:12px;background:#0e1829}
+.metric .label{font-size:12px;color:var(--muted)}
+.metric .value{font-size:23px;font-weight:750;overflow-wrap:anywhere}
+.metric small{color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12px}
+td:last-child,th:last-child{text-align:right}
+.bar{height:7px;background:#25354c;border-radius:99px;overflow:hidden;min-width:60px}
+.bar span{display:block;height:100%;background:var(--accent)}
+.scroll{overflow:auto}
+.small{font-size:13px}
+.foot{margin:22px 0;color:var(--muted);font-size:12px}
+#log{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
 <main>
-  <h1>📊 Deriv Smart Analyzer</h1>
-  <p>Live market data · Digit frequency · Read-only analysis</p>
+<h1>Deriv Smart Analyzer</h1>
+<div class="sub">Match digit analysis first · Live tick statistics · Read-only · No trading</div>
 
-  <section class="panel">
-    <div class="row">
-      <div>
-        <label for="market">Choose market</label>
-        <select id="market">
-          <option value="1HZ10V">Volatility 10 (1s)</option>
-          <option value="1HZ25V">Volatility 25 (1s)</option>
-          <option value="1HZ50V">Volatility 50 (1s)</option>
-          <option value="1HZ75V">Volatility 75 (1s)</option>
-          <option value="1HZ100V">Volatility 100 (1s)</option>
-          <option value="R_10">Volatility 10</option>
-          <option value="R_25">Volatility 25</option>
-          <option value="R_50">Volatility 50</option>
-          <option value="R_75">Volatility 75</option>
-          <option value="R_100">Volatility 100</option>
-        </select>
-      </div>
-      <div>
-        <label for="sample">Analysis window</label>
-        <select id="sample">
-          <option value="50">Last 50 ticks</option>
-          <option value="100" selected>Last 100 ticks</option>
-          <option value="250">Last 250 ticks</option>
-        </select>
-      </div>
-    </div>
-    <div class="row" style="margin-top:12px">
-      <button class="primary" id="connect">Connect / Start</button>
-      <button id="stop">Disconnect</button>
-    </div>
-    <p>Status: <span id="status" class="status">Disconnected</span></p>
-    <small id="tickCount">Ticks received: 0</small>
-    <div class="price" id="price">Waiting for price…</div>
-    <small id="lastUpdate">No live tick received yet</small>
-  </section>
+<div class="notice"><b>Important:</b> This tool describes recent historical frequencies, not guaranteed predictions. Historical patterns do not guarantee the next result. Test without money first.</div>
 
-  <section class="panel">
-    <h2>Market statistics</h2>
-    <div class="stats">
-      <div class="stat">Most frequent digit<strong id="hot">—</strong></div>
-      <div class="stat">Least frequent digit<strong id="cold">—</strong></div>
-      <div class="stat">Even digits<strong id="even">—</strong></div>
-      <div class="stat">Odd digits<strong id="odd">—</strong></div>
-      <div class="stat">Over 5 (6–9)<strong id="over">—</strong></div>
-      <div class="stat">Under 5 (0–4)<strong id="under">—</strong></div>
-      <div class="stat">Last digit<strong id="lastDigit">—</strong></div>
-      <div class="stat">Sample size<strong id="sampleSize">0</strong></div>
-    </div>
-  </section>
+<section class="panel">
+  <div class="status"><span class="dot" id="dot"></span><b id="status">Not connected</b><span class="muted" id="lastUpdate"></span></div>
+  <div class="controls" style="margin-top:14px">
+    <div><label for="market">Available market</label><select id="market"><option value="">Loading available markets…</option></select></div>
+    <div><label for="window">Recent ticks to analyze</label><select id="window"><option value="100">100 ticks</option><option value="250" selected>250 ticks</option><option value="500">500 ticks</option><option value="1000">1,000 ticks</option></select></div>
+    <div><label>Connection</label><button class="primary" id="connect">Connect / refresh markets</button></div>
+    <div><label>Live stream</label><button id="toggle" disabled>Start live analysis</button></div>
+    <div><label for="threshold">Minimum model-score filter</label><select id="threshold"><option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80" selected>80%</option><option value="90">90%</option></select></div>
+    <div><label for="expiry">Rescan / candidate timer</label><select id="expiry"><option value="15">15 seconds</option><option value="30">30 seconds</option><option value="60" selected>60 seconds</option><option value="120">120 seconds</option><option value="300">300 seconds</option></select></div>
+  </div>
+  <p class="small muted" id="marketInfo">Market list will be loaded from Deriv.</p>
+</section>
 
-  <section class="panel">
-    <h2>Digit frequency</h2>
-    <small>Percentages show how often each digit appeared in the selected sample.</small>
-    <div class="digits" id="digits"></div>
-  </section>
+<section class="panel">
+<h2>Selected market snapshot</h2>
+<div class="grid">
+  <div class="metric"><div class="label">Latest price</div><div class="value" id="price">—</div><small id="tickTime">Waiting for ticks</small></div>
+  <div class="metric"><div class="label">Ticks analyzed</div><div class="value" id="count">0</div><small>Recent rolling sample</small></div>
+  <div class="metric"><div class="label">Most frequent digit</div><div class="value" id="hot">—</div><small id="hotPct">—</small></div>
+  <div class="metric"><div class="label">Least frequent digit</div><div class="value" id="cold">—</div><small id="coldPct">—</small></div>
+  <div class="metric"><div class="label">Even / Odd</div><div class="value" id="evenOdd">—</div><small>Observed frequency</small></div>
+  <div class="metric"><div class="label">Over 5 / Under 5</div><div class="value" id="overUnder">—</div><small>Over means 6–9; under means 0–4</small></div>
+</div>
+</section>
 
-  <section class="panel">
-    <h2>Connection log</h2>
-    <div id="log">Ready. Tap Connect / Start to begin.</div>
-  </section>
+<section class="panel">
+<h2>Digit distribution</h2>
+<div class="scroll"><table><thead><tr><th>Digit</th><th>Count</th><th>Observed %</th><th>Frequency</th></tr></thead><tbody id="digits"><tr><td colspan="4" class="muted">Connect and start live analysis to collect ticks.</td></tr></tbody></table></div>
+</section>
 
-  <footer>
-    This tool only reads public market data. It does not log into your
-    Deriv account, place trades, or guarantee predictions. Historical
-    digit frequencies do not guarantee what the next tick will show.
-  </footer>
+<section class="panel" style="border-color:#237a68;box-shadow:0 0 24px #10b98118">
+<h2 style="color:var(--accent)">MATCH DIGIT PREDICTION</h2>
+<div class="grid">
+  <div class="metric"><div class="label">Candidate digit</div><div class="value" style="font-size:48px;color:var(--accent)" id="match">—</div><small id="matchScore">Waiting for sufficient live data</small></div>
+  <div class="metric"><div class="label">Model score</div><div class="value" id="modelScore">—</div><small>Historical share of leading digit; not win probability</small></div>
+  <div class="metric"><div class="label">Minimum filter</div><div class="value" id="filterStatus">WAIT</div><small id="filterDetail">80% model-score threshold</small></div>
+  <div class="metric"><div class="label">Rescan countdown</div><div class="value" id="countdown">01:00</div><small id="expiryStatus">Refresh interval, not contract expiry</small></div>
+</div>
+<div class="controls" style="margin-top:12px">
+  <div><label>Manual refresh</label><button class="primary" id="rescan">Rescan now</button></div>
+  <div><label>Prediction history</label><button id="clearHistory">Clear local history</button></div>
+</div>
+<p class="small muted">The model score is the leading digit's observed share in the selected sample. An 80% score does not mean an 80% chance of winning. No signal is forced when the score is below the threshold. The timer refreshes analysis only.</p>
+</section>
+
+<section class="panel">
+<h2>Secondary digit analysis</h2>
+<div class="grid">
+  <div class="metric"><div class="label">Even / Odd leader</div><div class="value" id="eoLead">—</div><small id="eoScore">—</small></div>
+  <div class="metric"><div class="label">Over / Under leader</div><div class="value" id="ouLead">—</div><small id="ouScore">—</small></div>
+  <div class="metric"><div class="label">Rise / Fall / Flat counts</div><div class="value" id="rf">—</div><small>Backward-looking only</small></div>
+</div>
+</section>
+
+<section class="panel">
+<h2>Recent candidate history</h2>
+<div class="scroll"><table><thead><tr><th>Time</th><th>Market</th><th>Digit</th><th>Score</th><th>Status</th></tr></thead><tbody id="historyRows"><tr><td colspan="5" class="muted">No candidates recorded yet.</td></tr></tbody></table></div>
+<p class="small muted">History records statistical candidates only. This page does not place trades.</p>
+</section>
+
+<section class="panel"><h2>Connection log</h2><div id="log">Ready.</div></section>
+<div class="foot">Read-only public market data. No account credentials are requested, and no trades are placed. Keep this tab open for live updates.</div>
 </main>
 
 <script>
 (() => {
+  'use strict';
+
+  // Official public market-data WebSocket. No account login or token required.
+  const WS_URL = 'wss://api.derivws.com/trading/v1/options/ws/public';
   const $ = id => document.getElementById(id);
-  const ENDPOINT = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
   let ws = null;
+  let symbols = [];
+  let tickSubId = null;
+  let live = false;
   let ticks = [];
-  let currentSymbol = '';
-  let manuallyStopped = false;
+  let countdownTimer = null;
+  let secondsLeft = 60;
+  let lastCandidateKey = '';
+  let predictionHistory = [];
 
   function log(message) {
-    const stamp = new Date().toLocaleTimeString();
-    $('log').textContent = stamp + ' — ' + message + '\n' + $('log').textContent;
-    $('log').textContent = $('log').textContent.slice(0, 3500);
+    $('log').textContent =
+      new Date().toLocaleTimeString() + ' — ' + message + '\n' +
+      $('log').textContent;
+    $('log').textContent = $('log').textContent.slice(0, 5000);
   }
 
-  function setStatus(message, connected = false) {
-    $('status').textContent = message;
-    $('status').className = connected ? 'status ok' : 'status';
+  function status(text, on = false) {
+    $('status').textContent = text;
+    $('dot').className = on ? 'dot on' : 'dot';
   }
 
-  function send(data) {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      log('Not connected. Tap Connect / Start.');
-      return;
+  function send(obj) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(obj));
+    } else {
+      log('WebSocket is not open. Reconnect and try again.');
     }
-    ws.send(JSON.stringify(data));
-  }
-
-  function getLastDigit(quote, pipSize) {
-    const decimals = Number.isInteger(Number(pipSize))
-      ? Math.max(0, Math.min(10, Number(pipSize)))
-      : 2;
-    const fixed = Number(quote).toFixed(decimals);
-    const digitsOnly = fixed.replace(/\D/g, '');
-    return Number(digitsOnly.slice(-1));
-  }
-
-  function renderStats() {
-    const limit = Number($('sample').value);
-    const data = ticks.slice(-limit);
-    const counts = Array(10).fill(0);
-
-    data.forEach(item => counts[item.digit]++);
-    const total = data.length;
-    $('sampleSize').textContent = total;
-    $('tickCount').textContent = 'Ticks received: ' + ticks.length;
-
-    if (!total) {
-      ['hot','cold','even','odd','over','under'].forEach(id => $(id).textContent = '—');
-      $('digits').innerHTML = '';
-      return;
-    }
-
-    const maxCount = Math.max(...counts);
-    const minCount = Math.min(...counts);
-    $('hot').textContent = counts.indexOf(maxCount);
-    $('cold').textContent = counts.indexOf(minCount);
-    $('even').textContent =
-      (counts[0]+counts[2]+counts[4]+counts[6]+counts[8]) / total * 100 .toFixed;
-    const evenCount = counts[0]+counts[2]+counts[4]+counts[6]+counts[8];
-    const oddCount = total - evenCount;
-    const overCount = counts[6]+counts[7]+counts[8]+counts[9];
-    const underCount = counts[0]+counts[1]+counts[2]+counts[3]+counts[4];
-
-    $('even').textContent = (evenCount / total * 100).toFixed(1) + '%';
-    $('odd').textContent = (oddCount / total * 100).toFixed(1) + '%';
-    $('over').textContent = (overCount / total * 100).toFixed(1) + '%';
-    $('under').textContent = (underCount / total * 100).toFixed(1) + '%';
-    $('lastDigit').textContent = data[data.length - 1].digit;
-
-    $('digits').innerHTML = counts.map((count, digit) => {
-      const pct = count / total * 100;
-      return '<div class="digit"><strong>' + digit + '</strong>' +
-        count + ' ticks<div>' + pct.toFixed(1) + '%</div>' +
-        '<div class="bar"><span style="width:' + pct + '%"></span></div></div>';
-    }).join('');
   }
 
   function connect() {
-    manuallyStopped = false;
-
     if (ws) {
-      try { ws.close(); } catch (_) {}
-      ws = null;
+      try { ws.onclose = null; ws.close(); } catch (_) {}
     }
 
+    clearInterval(countdownTimer);
+    live = false;
+    tickSubId = null;
     ticks = [];
-    renderStats();
-    $('price').textContent = 'Connecting…';
-    $('lastUpdate').textContent = 'Waiting for live data';
-    currentSymbol = $('market').value;
-    setStatus('Connecting…');
-    log('Connecting to public market feed: ' + currentSymbol);
+    $('toggle').textContent = 'Start live analysis';
+    $('toggle').disabled = true;
+    $('connect').disabled = true;
+    $('price').textContent = '—';
+    $('count').textContent = '0';
+    $('marketInfo').textContent = 'Connecting to the public market-data service…';
+    status('Connecting to Deriv…');
+    render();
+    log('Opening public WebSocket connection.');
 
+    let socket;
     try {
-      ws = new WebSocket(ENDPOINT);
+      socket = new WebSocket(WS_URL);
+      ws = socket;
     } catch (error) {
-      setStatus('Connection failed');
-      log('Could not create WebSocket: ' + error.message);
+      status('Connection could not start');
+      $('connect').disabled = false;
+      log('WebSocket creation failed: ' + error.message);
       return;
     }
 
-    ws.onopen = () => {
-      setStatus('Connected — requesting market data', true);
-      log('WebSocket connected. Requesting tick history.');
-      send({
-        ticks_history: currentSymbol,
-        count: Number($('sample').value),
-        end: 'latest',
-        style: 'ticks',
+    socket.onopen = () => {
+      if (ws !== socket) return;
+      status('Connected — loading markets', true);
+      log('WebSocket opened. Requesting active symbols.');
+      // Current active_symbols schema does not require product_type.
+      socket.send(JSON.stringify({
+        active_symbols: 'brief',
         req_id: 1
-      });
-      send({
-        ticks: currentSymbol,
-        subscribe: 1,
-        req_id: 2
-      });
+      }));
     };
 
-    ws.onmessage = event => {
-      let message;
-      try { message = JSON.parse(event.data); }
+    socket.onmessage = event => {
+      if (ws !== socket) return;
+
+      let d;
+      try { d = JSON.parse(event.data); }
       catch (_) {
-        log('Received an unreadable response.');
+        log('Received a response that could not be read.');
         return;
       }
 
-      if (message.error) {
-        const description = message.error.message || 'Unknown API error';
-        setStatus('Market data error');
-        log('Deriv API error: ' + description);
-        return;
-      }
-
-      if (message.msg_type === 'history' && message.history) {
-        const prices = message.history.prices || [];
-        const times = message.history.times || [];
-        const pipSize = message.pip_size ?? 2;
-
-        ticks = prices.map((quote, index) => ({
-          quote: Number(quote),
-          digit: getLastDigit(quote, pipSize),
-          time: times[index] || Date.now() / 1000
-        }));
-        const latest = ticks[ticks.length - 1];
-        if (latest) {
-          $('price').textContent = latest.quote;
-          $('lastUpdate').textContent = 'Latest historical quote loaded';
+      if (d.error) {
+        const msg = d.error.message || 'Unknown API error';
+        log('Deriv API error' + (d.req_id ? ' (request ' + d.req_id + ')' : '') + ': ' + msg);
+        if (d.req_id === 1) {
+          status('Market list error');
+          $('marketInfo').textContent = 'Deriv returned an error while loading markets. See the connection log.';
+          $('connect').disabled = false;
         }
-        renderStats();
-        log('Loaded ' + ticks.length + ' historical ticks.');
+        return;
       }
 
-      if (message.msg_type === 'tick' && message.tick) {
-        const quote = message.tick.quote;
-        const pipSize = message.tick.pip_size ?? 2;
-        const item = {
-          quote: Number(quote),
-          digit: getLastDigit(quote, pipSize),
-          time: message.tick.epoch || Date.now() / 1000
-        };
+      if (d.msg_type === 'active_symbols') {
+        symbols = (d.active_symbols || [])
+          .filter(s => s && s.symbol && s.display_name &&
+            (s.market === 'synthetic_index' ||
+             /volatility|crash|boom|step|jump|range break|drift|trek|dex|daily reset|skew step|multi step/i.test(s.display_name)))
+          .sort((a, b) => a.display_name.localeCompare(b.display_name));
 
-        if (!ticks.length || ticks[ticks.length - 1].time !== item.time) {
+        const sel = $('market');
+        const previous = sel.value;
+        sel.innerHTML = '';
+
+        if (!symbols.length) {
+          sel.add(new Option('No markets returned', ''));
+          status('No markets received');
+          $('marketInfo').textContent = 'No matching active markets were returned.';
+          $('toggle').disabled = true;
+          $('connect').disabled = false;
+          log('The market list response contained no matching symbols.');
+          return;
+        }
+
+        symbols.forEach(s => {
+          sel.add(new Option(s.display_name + ' (' + s.symbol + ')', s.symbol));
+        });
+
+        if (symbols.some(s => s.symbol === previous)) sel.value = previous;
+
+        $('marketInfo').textContent =
+          symbols.length + ' matching active markets returned. Only the selected market is streamed.';
+        $('toggle').disabled = false;
+        $('connect').disabled = false;
+        status('Connected — markets loaded', true);
+        log('Loaded ' + symbols.length + ' markets.');
+      }
+
+      if (d.msg_type === 'history' && d.history && d.history.prices) {
+        const prices = d.history.prices;
+        const times = d.history.times || [];
+
+        // Keep prices as strings where possible to retain decimal information.
+        ticks = prices.map((p, i) => ({
+          quote: String(p),
+          epoch: Number(times[i] || 0)
+        })).filter(t => Number.isFinite(Number(t.quote)));
+
+        const max = Number($('window').value);
+        if (ticks.length > max) ticks = ticks.slice(-max);
+
+        render();
+        log('Loaded ' + ticks.length + ' historical ticks for ' + $('market').value + '.');
+      }
+
+      if (d.msg_type === 'tick' && d.tick) {
+        if (d.subscription && d.subscription.id) tickSubId = d.subscription.id;
+
+        const quote = String(d.tick.quote);
+        if (!Number.isFinite(Number(quote))) return;
+
+        const epoch = Number(d.tick.epoch || 0);
+        const item = { quote, epoch };
+
+        // Avoid appending an identical timestamp twice.
+        if (!ticks.length || ticks[ticks.length - 1].epoch !== epoch ||
+            ticks[ticks.length - 1].quote !== quote) {
           ticks.push(item);
-          if (ticks.length > 1000) ticks = ticks.slice(-1000);
         }
 
-        $('price').textContent = quote;
-        $('lastUpdate').textContent =
-          'Updated: ' + new Date(item.time * 1000).toLocaleTimeString();
-        setStatus('Live — receiving ticks', true);
-        renderStats();
+        const max = Number($('window').value);
+        if (ticks.length > max) ticks = ticks.slice(-max);
+
+        $('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString();
+        status('Live — streaming ' + $('market').value, true);
+        render();
       }
     };
 
-    ws.onerror = () => {
-      setStatus('Connection error');
-      log('WebSocket error. Check your connection and try again.');
+    socket.onerror = () => {
+      if (ws !== socket) return;
+      status('Connection error');
+      $('connect').disabled = false;
+      log('WebSocket error. Check the connection log and internet connection.');
     };
 
-    ws.onclose = event => {
-      if (!manuallyStopped) {
-        setStatus('Disconnected');
-        log('Connection closed. Code: ' + event.code);
-      }
+    socket.onclose = event => {
+      if (ws !== socket) return;
+      ws = null;
+      live = false;
+      tickSubId = null;
+      clearInterval(countdownTimer);
+      status('Disconnected');
+      $('toggle').textContent = 'Start live analysis';
+      $('toggle').disabled = true;
+      $('connect').disabled = false;
+      log('Connection closed. Code: ' + event.code +
+        (event.reason ? ' — ' + event.reason : ''));
     };
   }
 
-  function disconnect() {
-    manuallyStopped = true;
-    if (ws) {
-      try { ws.close(); } catch (_) {}
-      ws = null;
+  function lastDigit(quote) {
+    const s = String(quote).trim();
+    if (!s || !/[0-9]/.test(s)) return null;
+
+    const decimalPart = s.includes('.') ? (s.split('.')[1] || '') : '';
+    const fixed = Number(s).toFixed(Math.min(decimalPart.length, 10));
+    const digits = fixed.replace(/\D/g, '');
+    return digits.length ? Number(digits[digits.length - 1]) : null;
+  }
+
+  function currentDigits() {
+    return ticks.map(t => lastDigit(t.quote))
+      .filter(d => Number.isInteger(d) && d >= 0 && d <= 9);
+  }
+
+  function startLive() {
+    if (!ws || ws.readyState !== WebSocket.OPEN || !$('market').value) {
+      log('Connect first and select an available market.');
+      return;
     }
-    setStatus('Disconnected');
-    log('Disconnected by user.');
+
+    if (tickSubId) send({ forget: tickSubId });
+    tickSubId = null;
+    ticks = [];
+    lastCandidateKey = '';
+
+    const symbol = $('market').value;
+    const max = Number($('window').value);
+
+    // Request historical data first; then subscribe to live ticks.
+    send({
+      ticks_history: symbol,
+      count: max,
+      end: 'latest',
+      style: 'ticks',
+      req_id: 2
+    });
+
+    send({
+      ticks: symbol,
+      subscribe: 1,
+      req_id: 3
+    });
+
+    live = true;
+    $('toggle').textContent = 'Stop live analysis';
+    status('Starting live analysis for ' + symbol, true);
+    log('Requested history and live ticks for ' + symbol + '.');
+    resetCountdown();
+  }
+
+  function stopLive() {
+    if (tickSubId) send({ forget: tickSubId });
+    live = false;
+    tickSubId = null;
+    clearInterval(countdownTimer);
+    $('toggle').textContent = 'Start live analysis';
+    status('Connected — stream stopped', true);
+    log('Live stream stopped.');
+  }
+
+  function render() {
+    const ds = currentDigits();
+    const n = ds.length;
+    $('count').textContent = n;
+
+    if (!n) {
+      $('hot').textContent = '—';
+      $('cold').textContent = '—';
+      $('hotPct').textContent = '—';
+      $('coldPct').textContent = '—';
+      $('evenOdd').textContent = '—';
+      $('overUnder').textContent = '—';
+      $('match').textContent = '—';
+      $('matchScore').textContent = 'Waiting for sufficient live data';
+      $('modelScore').textContent = '—';
+      $('filterStatus').textContent = 'WAIT';
+      $('filterDetail').textContent = 'Waiting for ticks';
+      $('eoLead').textContent = '—';
+      $('eoScore').textContent = '—';
+      $('ouLead').textContent = '—';
+      $('ouScore').textContent = '—';
+      $('rf').textContent = '—';
+      $('digits').innerHTML = '<tr><td colspan="4" class="muted">Waiting for tick data.</td></tr>';
+      $('tickTime').textContent = 'Waiting for ticks';
+      return;
+    }
+
+    const last = ticks[ticks.length - 1];
+    $('price').textContent = String(last.quote);
+    $('tickTime').textContent = last.epoch
+      ? new Date(last.epoch * 1000).toLocaleTimeString()
+      : 'Latest tick';
+
+    const counts = Array(10).fill(0);
+    ds.forEach(d => counts[d]++);
+    const pct = counts.map(c => 100 * c / n);
+    const maxCount = Math.max(...counts);
+    const minCount = Math.min(...counts);
+    const hot = counts.indexOf(maxCount);
+    const cold = counts.indexOf(minCount);
+
+    $('hot').textContent = hot;
+    $('hotPct').textContent = pct[hot].toFixed(1) + '% observed';
+    $('cold').textContent = cold;
+    $('coldPct').textContent = pct[cold].toFixed(1) + '% observed';
+
+    const even = counts.reduce((a, c, i) => a + (i % 2 === 0 ? c : 0), 0);
+    const odd = n - even;
+    const over = counts.slice(6).reduce((a, c) => a + c, 0);
+    const under = counts.slice(0, 5).reduce((a, c) => a + c, 0);
+
+    $('evenOdd').textContent =
+      (100 * even / n).toFixed(1) + '% / ' + (100 * odd / n).toFixed(1) + '%';
+    $('overUnder').textContent =
+      (100 * over / n).toFixed(1) + '% / ' + (100 * under / n).toFixed(1) + '%';
+
+    $('digits').innerHTML = counts.map((c, i) =>
+      '<tr><td><b>' + i + '</b></td><td>' + c + '</td><td>' +
+      pct[i].toFixed(1) + '%</td><td><div class="bar"><span style="width:' +
+      pct[i] + '%"></span></div></td></tr>'
+    ).join('');
+
+    // The candidate is the most frequent digit in this sample, not a guaranteed prediction.
+    $('match').textContent = String(hot);
+    $('matchScore').textContent = pct[hot].toFixed(1) + '% observed in ' + n + ' ticks';
+    $('modelScore').textContent = pct[hot].toFixed(1) + '%';
+
+    const threshold = Number($('threshold').value);
+    const qualified = pct[hot] >= threshold;
+    $('filterStatus').textContent = qualified ? 'QUALIFIED SCORE' : 'WAIT';
+    $('filterDetail').textContent = qualified
+      ? 'Meets ' + threshold + '% historical-frequency filter'
+      : 'Below ' + threshold + '% threshold — no qualified score';
+
+    $('eoLead').textContent = even === odd ? 'Even = Odd' : (even > odd ? 'Even' : 'Odd');
+    $('eoScore').textContent = (100 * Math.max(even, odd) / n).toFixed(1) + '% observed';
+    $('ouLead').textContent = over === under ? 'Over = Under' : (over > under ? 'Over 5' : 'Under 5');
+    $('ouScore').textContent = (100 * Math.max(over, under) / n).toFixed(1) + '% observed';
+
+    let rise = 0, fall = 0, flat = 0;
+    for (let i = 1; i < ticks.length; i++) {
+      const a = Number(ticks[i - 1].quote);
+      const b = Number(ticks[i].quote);
+      if (b > a) rise++;
+      else if (b < a) fall++;
+      else flat++;
+    }
+    $('rf').textContent = rise + ' / ' + fall + ' / ' + flat;
+  }
+
+  function renderHistory() {
+    const body = $('historyRows');
+    if (!predictionHistory.length) {
+      body.innerHTML = '<tr><td colspan="5" class="muted">No candidates recorded yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = predictionHistory.slice().reverse().slice(0, 30).map(p =>
+      '<tr><td>' + new Date(p.time).toLocaleTimeString() + '</td><td>' +
+      p.market + '</td><td>' + p.digit + '</td><td>' +
+      p.score.toFixed(1) + '%</td><td>' + p.status + '</td></tr>'
+    ).join('');
+  }
+
+  function recordCandidate() {
+    const ds = currentDigits();
+    const required = Math.min(Number($('window').value), 100);
+    if (!live || ds.length < required) {
+      $('expiryStatus').textContent = 'Waiting for sufficient ticks';
+      return;
+    }
+
+    const counts = Array(10).fill(0);
+    ds.forEach(d => counts[d]++);
+    const max = Math.max(...counts);
+    const digit = counts.indexOf(max);
+    const score = 100 * max / ds.length;
+    const key = $('market').value + '|' + ticks[ticks.length - 1].epoch + '|' + digit;
+
+    if (key === lastCandidateKey) return;
+    lastCandidateKey = key;
+
+    const threshold = Number($('threshold').value);
+    predictionHistory.push({
+      time: Date.now(),
+      market: $('market').value,
+      digit,
+      score,
+      status: score >= threshold ? 'SCORE ≥ ' + threshold + '%' : 'BELOW THRESHOLD'
+    });
+
+    if (predictionHistory.length > 300) predictionHistory = predictionHistory.slice(-300);
+    renderHistory();
+  }
+
+  function resetCountdown() {
+    clearInterval(countdownTimer);
+    secondsLeft = Number($('expiry').value);
+    $('countdown').textContent = formatTime(secondsLeft);
+    recordCandidate();
+
+    countdownTimer = setInterval(() => {
+      if (!live) return;
+      secondsLeft = Math.max(0, secondsLeft - 1);
+      $('countdown').textContent = formatTime(secondsLeft);
+
+      if (secondsLeft === 0) {
+        $('expiryStatus').textContent = 'Timer elapsed — refreshing statistics';
+        render();
+        recordCandidate();
+        secondsLeft = Number($('expiry').value);
+        $('countdown').textContent = formatTime(secondsLeft);
+      }
+    }, 1000);
+  }
+
+  function formatTime(s) {
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' +
+      String(s % 60).padStart(2, '0');
   }
 
   $('connect').addEventListener('click', connect);
-  $('stop').addEventListener('click', disconnect);
-  $('sample').addEventListener('change', renderStats);
+  $('toggle').addEventListener('click', () => live ? stopLive() : startLive());
 
   $('market').addEventListener('change', () => {
-    if (ws && ws.readyState === WebSocket.OPEN) connect();
+    if (live) startLive();
   });
 
-  renderStats();
+  $('window').addEventListener('change', () => {
+    if (live) startLive();
+    else if (ticks.length > Number($('window').value)) {
+      ticks = ticks.slice(-Number($('window').value));
+      render();
+    }
+  });
+
+  $('threshold').addEventListener('change', render);
+
+  $('expiry').addEventListener('change', () => {
+    if (live) resetCountdown();
+    else $('countdown').textContent = formatTime(Number($('expiry').value));
+  });
+
+  $('rescan').addEventListener('click', () => {
+    render();
+    recordCandidate();
+    if (live) resetCountdown();
+    log('Manual statistical rescan requested.');
+  });
+
+  $('clearHistory').addEventListener('click', () => {
+    predictionHistory = [];
+    renderHistory();
+  });
+
+  $('countdown').textContent = '01:00';
+  renderHistory();
+  connect();
 })();
 </script>
 </body>
