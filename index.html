@@ -214,10 +214,8 @@ td:last-child,th:last-child{text-align:right}
 
       if (d.msg_type === 'active_symbols') {
         symbols = (d.active_symbols || [])
-          .filter(s => s && s.symbol && s.display_name &&
-            (s.market === 'synthetic_index' ||
-             /volatility|crash|boom|step|jump|range break|drift|trek|dex|daily reset|skew step|multi step/i.test(s.display_name)))
-          .sort((a, b) => a.display_name.localeCompare(b.display_name));
+  .filter(s => s && s.symbol && s.display_name)
+  .sort((a, b) => a.display_name.localeCompare(b.display_name));
 
         const sel = $('market');
         const previous = sel.value;
