@@ -47,7 +47,7 @@
 <script>
 (() => {
   'use strict';
-  const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+  const WS_URL = 'wss://api.derivws.com/trading/v1/options/ws/public';
   const $ = id => document.getElementById(id);
   let ws = null, symbols = [], tickSubId = null, live = false, ticks = [];
   let countdownTimer = null, rescanTimer = null, secondsLeft = 60, lastCandidateKey = '';
