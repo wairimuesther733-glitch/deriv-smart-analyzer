@@ -1,10 +1,9 @@
 
+<script>
 (() => {
   'use strict';
 
-  const WS_URL =
-    'wss://ws.derivws.com/websockets/v3?app_id=1089';
-
+  const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
   const $ = id => document.getElementById(id);
 
   let ws = null;
@@ -33,7 +32,7 @@
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(data));
     } else {
-      log('WebSocket is not open.');
+      log('WebSocket is not open. Reconnect and try again.');
     }
   }
 
@@ -54,6 +53,8 @@
     $('toggle').disabled = true;
     $('toggle').textContent = 'Start live analysis';
     $('connect').disabled = true;
+    $('price').textContent = '—';
+    $('count').textContent = '0';
     $('marketInfo').textContent = 'Connecting to Deriv…';
 
     status('Connecting to Deriv…');
@@ -68,7 +69,7 @@
     } catch (error) {
       status('Connection could not start');
       $('connect').disabled = false;
-      log('Could not create WebSocket: ' + error.message);
+      log('WebSocket creation failed: ' + error.message);
       return;
     }
 
@@ -110,26 +111,25 @@
             'Deriv rejected the market request. Check Connection log.';
           $('connect').disabled = false;
         }
-
         return;
       }
 
       if (data.msg_type === 'active_symbols') {
         const received = data.active_symbols || [];
 
-        log('Received active-symbol response: ' +
+        log('Active-symbol response received: ' +
             received.length + ' entries.');
 
-        // Accept either the legacy or newer market field names.
         symbols = received.map(item => ({
           ...item,
           symbol: item.symbol || item.underlying_symbol,
           display_name:
             item.display_name || item.underlying_symbol_name
-        })).filter(item => item.symbol && item.display_name)
-          .sort((a, b) =>
-            a.display_name.localeCompare(b.display_name)
-          );
+        }))
+        .filter(item => item.symbol && item.display_name)
+        .sort((a, b) =>
+          a.display_name.localeCompare(b.display_name)
+        );
 
         const select = $('market');
         const previous = select.value;
@@ -139,17 +139,14 @@
           select.add(new Option('No markets returned', ''));
           status('No markets received');
           $('marketInfo').textContent =
-            'The server response contained no recognized markets.';
-
+            'No usable markets found. Check the Connection log.';
           $('toggle').disabled = true;
           $('connect').disabled = false;
 
-          log('No usable markets found. Response keys: ' +
+          log('No recognized markets. Response keys: ' +
               Object.keys(data).join(', '));
-
           log('Sample response: ' +
               JSON.stringify(received[0] || data).slice(0, 1200));
-
           return;
         }
 
@@ -170,7 +167,6 @@
         $('toggle').disabled = false;
         $('connect').disabled = false;
         status('Connected — markets loaded', true);
-
         log('Successfully loaded ' + symbols.length + ' markets.');
       }
 
@@ -186,7 +182,6 @@
 
         trimTicks();
         render();
-
         log('Loaded ' + ticks.length + ' historical ticks.');
       }
 
@@ -207,7 +202,6 @@
         }
 
         trimTicks();
-
         $('lastUpdate').textContent =
           'Updated ' + new Date().toLocaleTimeString();
 
@@ -226,7 +220,7 @@
 
       status('Connection error');
       $('connect').disabled = false;
-      log('WebSocket error. See other messages in this log.');
+      log('WebSocket error. Check the connection log.');
     };
 
     socket.onclose = event => {
@@ -235,7 +229,6 @@
       ws = null;
       live = false;
       tickSubId = null;
-
       clearInterval(countdownTimer);
 
       status('Disconnected');
@@ -250,15 +243,11 @@
 
   function trimTicks() {
     const max = Number($('window').value) || 250;
-
-    if (ticks.length > max) {
-      ticks = ticks.slice(-max);
-    }
+    if (ticks.length > max) ticks = ticks.slice(-max);
   }
 
   function lastDigit(quote) {
     const text = String(quote).trim();
-
     if (!text || !/[0-9]/.test(text)) return null;
 
     const decimals = text.includes('.')
@@ -287,9 +276,7 @@
       return;
     }
 
-    if (tickSubId) {
-      send({ forget: tickSubId });
-    }
+    if (tickSubId) send({ forget: tickSubId });
 
     tickSubId = null;
     ticks = [];
@@ -314,7 +301,6 @@
 
     live = true;
     $('toggle').textContent = 'Stop live analysis';
-
     status('Starting live analysis — ' + market, true);
     log('Requested historical and live ticks for ' + market + '.');
 
@@ -326,19 +312,16 @@
 
     live = false;
     tickSubId = null;
-
     clearInterval(countdownTimer);
 
     $('toggle').textContent = 'Start live analysis';
     status('Connected — stream stopped', true);
-
     log('Live stream stopped.');
   }
 
   function render() {
     const digits = currentDigits();
     const total = digits.length;
-
     $('count').textContent = total;
 
     if (!total) {
@@ -363,12 +346,10 @@
 
       $('digits').innerHTML =
         '<tr><td colspan="4" class="muted">Waiting for tick data.</td></tr>';
-
       return;
     }
 
     const latest = ticks[ticks.length - 1];
-
     $('price').textContent = latest.quote;
     $('tickTime').textContent = latest.epoch
       ? new Date(latest.epoch * 1000).toLocaleTimeString()
@@ -413,7 +394,6 @@
     $('match').textContent = hot;
     $('matchScore').textContent =
       percentages[hot].toFixed(1) + '% observed in ' + total + ' ticks';
-
     $('modelScore').textContent = percentages[hot].toFixed(1) + '%';
 
     const threshold = Number($('threshold').value);
@@ -425,22 +405,16 @@
       : 'Below ' + threshold + '% threshold';
 
     $('eoLead').textContent = even === odd
-      ? 'Even = Odd'
-      : (even > odd ? 'Even' : 'Odd');
-
+      ? 'Even = Odd' : (even > odd ? 'Even' : 'Odd');
     $('eoScore').textContent =
       (100 * Math.max(even, odd) / total).toFixed(1) + '% observed';
 
     $('ouLead').textContent = over === under
-      ? 'Over = Under'
-      : (over > under ? 'Over 5' : 'Under 5');
-
+      ? 'Over = Under' : (over > under ? 'Over 5' : 'Under 5');
     $('ouScore').textContent =
       (100 * Math.max(over, under) / total).toFixed(1) + '% observed';
 
-    let rise = 0;
-    let fall = 0;
-    let flat = 0;
+    let rise = 0, fall = 0, flat = 0;
 
     for (let i = 1; i < ticks.length; i++) {
       const before = Number(ticks[i - 1].quote);
@@ -488,7 +462,6 @@
     const digit = counts.indexOf(highest);
     const score = 100 * highest / digits.length;
     const latest = ticks[ticks.length - 1];
-
     const key = $('market').value + '|' + latest.epoch + '|' + digit;
 
     if (key === lastCandidateKey) return;
@@ -520,10 +493,8 @@
 
   function resetCountdown() {
     clearInterval(countdownTimer);
-
     secondsLeft = Number($('expiry').value);
     $('countdown').textContent = formatTime(secondsLeft);
-
     recordCandidate();
 
     countdownTimer = setInterval(() => {
@@ -535,22 +506,15 @@
       if (secondsLeft === 0) {
         render();
         recordCandidate();
-
         secondsLeft = Number($('expiry').value);
         $('countdown').textContent = formatTime(secondsLeft);
-
-        $('expiryStatus').textContent =
-          'Timer elapsed — statistics refreshed';
+        $('expiryStatus').textContent = 'Timer elapsed — statistics refreshed';
       }
     }, 1000);
   }
 
   $('connect').addEventListener('click', connect);
-
-  $('toggle').addEventListener('click', () => {
-    if (live) stopLive();
-    else startLive();
-  });
+  $('toggle').addEventListener('click', () => live ? stopLive() : startLive());
 
   $('market').addEventListener('change', () => {
     if (live) startLive();
@@ -568,18 +532,13 @@
 
   $('expiry').addEventListener('change', () => {
     if (live) resetCountdown();
-    else {
-      $('countdown').textContent =
-        formatTime(Number($('expiry').value));
-    }
+    else $('countdown').textContent = formatTime(Number($('expiry').value));
   });
 
   $('rescan').addEventListener('click', () => {
     render();
     recordCandidate();
-
     if (live) resetCountdown();
-
     log('Manual rescan completed.');
   });
 
@@ -592,3 +551,4 @@
   renderHistory();
   connect();
 })();
+</script>
